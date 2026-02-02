@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: kafka-stream
+  cloud:
+    stream:
+      bindings:
+        countWord-in-0:
+          destination: word
+        countWord-out-0:
+          destination: wordCount
+        processWord-in-0:
+          destination: wordCount
+      kafka:
+        streams:
+          binder:
+            application-id: hello-word-count-sample
+            configuration:
+              commit.interval.ms: 100
+          bindings:
+            processWord-in-0:
+              consumer:
+                configuration:
+                  group.id: hello-word-count-sample-consumer
+                application-id: hello-word-count-sample-consumer
+        binder:
+          auto-create-topics: true
+          enable-observation: true
+    function:
+      definition: countWord; processWord
+  kafka:
+    consumer:
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: com.example.kafkastream.dto
+        spring.json.value.default.type: com.example.kafkastream.dto.Word
+        spring.json.use.type.headers: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    bootstrap-servers: localhost:9092
+    streams:
+      cleanup:
+        on-startup: true
+  integration:
+    poller:
+      fixed-delay: 1000
